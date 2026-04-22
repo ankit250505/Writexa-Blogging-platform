@@ -61,7 +61,7 @@ export default async function MyPostsPage() {
             : "This page is intentionally simple for the assignment: create, review, and edit your authored posts in one place."
         }
       />
-      <PostsTable posts={posts} />
+      <PostsTable posts={posts} canDelete={profile!.role === "admin"} />
     </div>
   );
 }

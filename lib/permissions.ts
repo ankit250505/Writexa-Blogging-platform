@@ -23,3 +23,7 @@ export function canEditPost(profile: Profile | null, authorId: string) {
 
   return profile.role === "author" && profile.id === authorId;
 }
+
+export function canDeletePost(profile: Profile | null) {
+  return profile?.role === "admin";
+}

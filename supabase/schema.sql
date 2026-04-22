@@ -144,6 +144,20 @@ with check (
   )
 );
 
+drop policy if exists "Admins can delete posts" on public.posts;
+create policy "Admins can delete posts"
+on public.posts
+for delete
+to authenticated
+using (
+  exists (
+    select 1
+    from public.users
+    where id = auth.uid()
+      and role = 'admin'
+  )
+);
+
 drop policy if exists "Anyone can read comments" on public.comments;
 create policy "Anyone can read comments"
 on public.comments

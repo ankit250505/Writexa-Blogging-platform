@@ -1,9 +1,15 @@
 import Link from "next/link";
 
+import { deletePostAction } from "@/lib/actions/post-actions";
 import { formatDate, truncate } from "@/lib/utils";
 import type { PostListItem } from "@/types";
 
-export function PostsTable({ posts }: { posts: PostListItem[] }) {
+type PostsTableProps = {
+  posts: PostListItem[];
+  canDelete?: boolean;
+};
+
+export function PostsTable({ posts, canDelete = false }: PostsTableProps) {
   if (!posts.length) {
     return (
       <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">
@@ -48,12 +54,24 @@ export function PostsTable({ posts }: { posts: PostListItem[] }) {
                   {formatDate(post.created_at)}
                 </td>
                 <td className="px-5 py-4">
-                  <Link
-                    href={`/dashboard/edit-post/${post.id}`}
-                    className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
-                  >
-                    Edit
-                  </Link>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`/dashboard/edit-post/${post.id}`}
+                      className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
+                    >
+                      Edit
+                    </Link>
+                    {canDelete ? (
+                      <form action={deletePostAction.bind(null, post.id)}>
+                        <button
+                          type="submit"
+                          className="rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                        >
+                          Delete
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
                 </td>
               </tr>
             ))}

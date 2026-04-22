@@ -8,7 +8,8 @@ import { z } from "zod";
 import { getCurrentProfile } from "@/lib/auth";
 import { IMAGE_BUCKET } from "@/lib/constants";
 import { generatePostSummary } from "@/lib/gemini";
-import { canCreatePost, canEditPost } from "@/lib/permissions";
+import { canCreatePost, canDeletePost, canEditPost } from "@/lib/permissions";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/types";
 
@@ -159,4 +160,58 @@ export async function updatePostAction(
   }
 
   redirect(`/posts/${postId}?updated=1`);
+}
+
+export async function deletePostAction(postId: string) {
+  const profile = await getCurrentProfile();
+
+  if (!canDeletePost(profile)) {
+    throw new Error("You do not have permission to delete posts.");
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: post, error: fetchError } = await supabase
+    .from("posts")
+    .select("id, image_url")
+    .eq("id", postId)
+    .maybeSingle<{ id: string; image_url: string | null }>();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (post?.image_url) {
+    try {
+      const imagePath = extractStoragePathFromUrl(post.image_url);
+
+      if (imagePath) {
+        await supabaseAdmin.storage.from(IMAGE_BUCKET).remove([imagePath]);
+      }
+    } catch (storageError) {
+      console.error("Image cleanup failed after deleting post", storageError);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/my-posts");
+  revalidatePath("/dashboard/comments");
+  redirect("/dashboard/my-posts?deleted=1");
+}
+
+function extractStoragePathFromUrl(imageUrl: string) {
+  const marker = `/storage/v1/object/public/${IMAGE_BUCKET}/`;
+  const index = imageUrl.indexOf(marker);
+
+  if (index === -1) {
+    return null;
+  }
+
+  return imageUrl.slice(index + marker.length);
 }
