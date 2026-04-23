@@ -1,6 +1,6 @@
-# Inkspire
+# Writexa
 
-Inkspire is a full-stack blogging platform built for an internship assignment using Next.js App Router, TypeScript, Supabase, Tailwind CSS, and the Google Gemini API. It supports authentication, role-based access control, post creation and editing, comments, search, pagination, and one-time AI-generated summaries.
+Writexa is a full-stack blogging platform built for an internship assignment using Next.js App Router, TypeScript, Supabase, Tailwind CSS, and the Google Gemini API. It supports authentication, role-based access control, post creation and editing, comments, search, pagination, and one-time AI-generated summaries.
 
 ## Features
 
